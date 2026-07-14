@@ -2,7 +2,6 @@
 
 const { Client, GatewayIntentBits } = require("discord.js");
 
-// Permissoes concedidas ao bot
 const client = new Client({
     intents: [
         GatewayIntentBits.Guilds,
@@ -10,8 +9,6 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
     ],
 });
-
-
 
 client.once("ready", () => {
     console.log(`Bot conectado como ${client.user.tag}`);

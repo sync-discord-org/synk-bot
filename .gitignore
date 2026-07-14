@@ -1,5 +1,6 @@
 # Editor Files
 .idea/
+.agents/
 *.aiignore
 
 # Logs
