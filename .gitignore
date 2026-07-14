@@ -1,3 +1,7 @@
+# Editor Files
+.idea/
+*.aiignore
+
 # Logs
 logs
 *.log
