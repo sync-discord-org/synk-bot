@@ -18,5 +18,6 @@ if (!fs.existsSync(path.join(__dirname, "database"))) fs.mkdirSync(path.join(__d
 //Events
 require("./events/ready.js")(client);
 require("./events/messageCreate.js")(client);
+require("./events/interactionCreate.js")(client);
 
 client.login(process.env.DISCORD_TOKEN).then();

@@ -1,6 +1,6 @@
 # synk-bot
 
-A bot for discord
+A bot for discord using JS.
 
 ## Installation
 
