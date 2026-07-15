@@ -1,4 +1,6 @@
-﻿const { setTimeout: sleep } = require("timers/promises")
+﻿const fs = require("fs");
+const path = require("path");
+const { setTimeout: sleep } = require("timers/promises")
 
 const {
     ActionRowBuilder,
@@ -8,14 +10,36 @@ const {
     PermissionsBitField, EmbedBuilder,
 } = require("discord.js");
 
+function getTicketAdminRoleId() {
+    const filePath = path.join(__dirname, "../../database/ticket.json");
+
+    try {
+        if (!fs.existsSync(filePath)) return null;
+
+        const fileContent = fs.readFileSync(filePath, "utf8");
+        const data = fileContent.trim() ? JSON.parse(fileContent) : {};
+        const roleId = data.ticketAdminRole;
+
+        return roleId || null;
+    } catch (error) {
+        console.error("Nao foi possivel carregar o cargo Ticket Admin:", error);
+        return null;
+    }
+}
+
 module.exports = async (client, interaction) => {
 
     // Deletar chat caso exista
     if (interaction.customId === "ticket-close") {
         const isOwner = interaction.channel.topic === interaction.user.id;
-        const isStaff = interaction.member.permissions.has(
+        const isAdmin = interaction.member.permissions.has(
             PermissionsBitField.Flags.Administrator
         );
+        const ticketAdminRoleId = getTicketAdminRoleId();
+        const isTicketAdmin = Boolean(
+            ticketAdminRoleId && interaction.member.roles.cache.has(ticketAdminRoleId)
+        );
+        const isStaff = isAdmin || isTicketAdmin;
 
         if (!isOwner && !isStaff) {
             await interaction.reply({
@@ -68,6 +92,8 @@ module.exports = async (client, interaction) => {
         return;
     }
 
+    const ticketAdminRoleId = getTicketAdminRoleId();
+
     const ticketChannel = await interaction.guild.channels.create({
         name: channelName,
         type: ChannelType.GuildText,
@@ -85,6 +111,14 @@ module.exports = async (client, interaction) => {
                     PermissionsBitField.Flags.ReadMessageHistory,
                 ],
             },
+            ...(ticketAdminRoleId ? [{
+                id: ticketAdminRoleId,
+                allow: [
+                    PermissionsBitField.Flags.ViewChannel,
+                    PermissionsBitField.Flags.SendMessages,
+                    PermissionsBitField.Flags.ReadMessageHistory,
+                ],
+            }] : []),
         ],
     });
 
