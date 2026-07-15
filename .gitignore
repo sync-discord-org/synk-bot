@@ -3,6 +3,9 @@
 .agents/
 *.aiignore
 
+# Database files
+database/*
+
 # Logs
 logs
 *.log

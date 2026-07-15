@@ -1,4 +1,7 @@
-﻿require("dotenv").config();
+﻿const fs = require("fs");
+const path = require("path");
+
+require("dotenv").config();
 
 const { Client, GatewayIntentBits } = require("discord.js");
 
@@ -9,6 +12,8 @@ const client = new Client({
         GatewayIntentBits.MessageContent,
     ],
 });
+
+if (!fs.existsSync(path.join(__dirname, "database"))) fs.mkdirSync(path.join(__dirname, "database"));
 
 //Events
 require("./events/ready.js")(client);
