@@ -5,7 +5,8 @@
         // Bot Comands
         if (!message.content.startsWith("s!")) return;
 
-        require("./handlers/ticket-chat.js")(client, message);
+        require("./handlers/set-ticket-chat.js")(client, message);
         require("./handlers/create-ticket-role.js")(message);
+        require("./handlers/add-ticket-admin.js")(message);
     });
 };

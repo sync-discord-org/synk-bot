@@ -13,7 +13,7 @@ const {
 module.exports = async (client, message) => {
     const commandContent = message.content.replace("s!", "");
 
-    if (commandContent.startsWith("ticket-chat ")){
+    if (commandContent.startsWith("set-ticket-chat ")){
 
         // Manipulação JSON
         const filePath = path.join(__dirname, "../../database/ticket.json");
@@ -35,7 +35,7 @@ module.exports = async (client, message) => {
             return;
         }
 
-        const ticketChat = commandContent.replace("ticket-chat ", "");
+        const ticketChat = commandContent.replace("set-ticket-chat ", "");
         const ticketChannel = await client.channels.fetch(ticketChat);
 
         // Verificar se o chat está vazio
@@ -87,9 +87,6 @@ module.exports = async (client, message) => {
 
             const reply = await message.reply("Chat de ticket definido com sucesso.");
             await deleteTicketChat(message, reply);
-
-            // Criação automática do role "ticket-admin"
-            await require("./create-ticket-role.js")(message.guild, true)
 
         }catch (error) {
             console.error(error);
