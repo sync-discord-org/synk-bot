@@ -6,5 +6,6 @@
         if (!message.content.startsWith("s!")) return;
 
         require("./handlers/ticket-chat.js")(client, message);
+        require("./handlers/create-ticket-role.js")(message);
     });
 };

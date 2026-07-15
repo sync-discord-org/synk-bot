@@ -104,10 +104,11 @@ module.exports = async (client, interaction) => {
             .setStyle(ButtonStyle.Danger)
     );
 
-    await ticketChannel.send({
+    const topicMessage = await ticketChannel.send({
         embeds: [embed],
         components: [closeButton],
     });
+    await topicMessage.pin();
 
     await interaction.reply({
         content: `Seu ticket foi criado: ${ticketChannel}`,

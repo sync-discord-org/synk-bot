@@ -11,29 +11,45 @@ const {
 } = require("discord.js");
 
 module.exports = async (client, message) => {
-    const commandContent = message.content.replace("s! ", "");
+    const commandContent = message.content.replace("s!", "");
 
     if (commandContent.startsWith("ticket-chat ")){
+
+        // Manipulação JSON
+        const filePath = path.join(__dirname, "../../database/ticket.json");
+        const fileContent = fs.existsSync(filePath)
+            ? fs.readFileSync(filePath, "utf8")
+            : "{}";
+        const data = fileContent.trim() ? JSON.parse(fileContent) : {};
 
         // Verificacao de adm
         const isAdmin = message.member?.permissions.has(
             PermissionsBitField.Flags.Administrator
         );
 
-        if (!isAdmin) {
+        const isTicketAdmin = false //message.member?.roles.cache.some(role => role.name === "Ticket Admin");
+
+        if (!isAdmin && !isTicketAdmin) {
             const reply = await message.reply("Apenas administradores podem executar este comando.");
+            await deleteTicketChat(message, reply);
+            return;
+        }
+
+        const ticketChat = commandContent.replace("ticket-chat ", "");
+        const ticketChannel = await client.channels.fetch(ticketChat);
+
+        // Verificar se o chat está vazio
+        const messages = await ticketChannel.messages.fetch({limit: 1});
+        if (messages.size > 0) {
+            const reply = await message.reply("O chat precisa estar vazio para configurar como chat de tickets.");
             await deleteTicketChat(message, reply);
             return;
         }
 
         // ----------------- Sistema principal do comando -------------------------
 
-        const ticketChat = commandContent.replace("ticket-chat ", "");
-
         try {
-            const ticketChannel = await client.channels.fetch(ticketChat);
-
-            // Mensagem embed
+            // Configurações da mensagem embed + botões
             const embed = new EmbedBuilder()
                 .setColor(0x333333)
                 .setTitle("**SUPORTE**")
@@ -42,7 +58,6 @@ module.exports = async (client, message) => {
                 .setFooter({ text: "Criacao de tickets desnecessarios pode acarretar em penalizacoes." })
                 .setTimestamp();
 
-            // Botoes do embed
             const buttons = new ActionRowBuilder()
                 .addComponents(
                     new ButtonBuilder()
@@ -57,10 +72,9 @@ module.exports = async (client, message) => {
                         .setStyle(ButtonStyle.Danger)
                 );
 
-
             await ticketChannel.send({ embeds: [embed], components: [buttons] });
 
-            // Set chat permissions
+            // Configuração prévia do chat
             await ticketChannel.permissionOverwrites.edit(ticketChannel.guild.roles.everyone, {
                 SendMessages: false,
             });
@@ -68,18 +82,14 @@ module.exports = async (client, message) => {
                 SendMessages: true,
             });
 
-            // Read and Write database
-            const filePath = path.join(__dirname, "../../database/ticket.json");
-            const fileContent = fs.existsSync(filePath)
-                ? fs.readFileSync(filePath, "utf8")
-                : "{}";
-            const data = fileContent.trim() ? JSON.parse(fileContent) : {};
-
             data.ticketChat = ticketChat;
             fs.writeFileSync(filePath, JSON.stringify(data));
 
             const reply = await message.reply("Chat de ticket definido com sucesso.");
             await deleteTicketChat(message, reply);
+
+            // Criação automática do role "ticket-admin"
+            await require("./create-ticket-role.js")(message.guild, true)
 
         }catch (error) {
             console.error(error);
