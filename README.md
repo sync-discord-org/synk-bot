@@ -16,4 +16,3 @@ A bot for Discord using JS.
 - `/set-ticket-chat` - Set the ticket chat channel
 - `/create-ticket-role` - Create a ticket role
 - `/add-ticket-admin` - Add a user as a ticket admin
-

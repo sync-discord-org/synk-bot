@@ -1,43 +1,23 @@
-﻿const fs = require("fs");
-const path = require("path");
-const { setTimeout: sleep } = require("timers/promises")
-
+const { setTimeout: sleep } = require("timers/promises");
 const {
     ActionRowBuilder,
     ButtonBuilder,
     ButtonStyle,
     ChannelType,
-    PermissionsBitField, EmbedBuilder,
+    PermissionsBitField,
+    EmbedBuilder,
 } = require("discord.js");
-
-function getTicketAdminRoleId() {
-    const filePath = path.join(__dirname, "../../database/ticket.json");
-
-    try {
-        if (!fs.existsSync(filePath)) return null;
-
-        const fileContent = fs.readFileSync(filePath, "utf8");
-        const data = fileContent.trim() ? JSON.parse(fileContent) : {};
-        const roleId = data.ticketAdminRole;
-
-        return roleId || null;
-    } catch (error) {
-        console.error("Nao foi possivel carregar o cargo Ticket Admin:", error);
-        return null;
-    }
-}
+const { findTicketAdminRole } = require("../../utils/ticket-config");
 
 module.exports = async (client, interaction) => {
-
-    // Deletar chat caso exista
     if (interaction.customId === "ticket-close") {
         const isOwner = interaction.channel.topic === interaction.user.id;
         const isAdmin = interaction.member.permissions.has(
             PermissionsBitField.Flags.Administrator
         );
-        const ticketAdminRoleId = getTicketAdminRoleId();
+        const ticketAdminRole = await findTicketAdminRole(interaction.guild);
         const isTicketAdmin = Boolean(
-            ticketAdminRoleId && interaction.member.roles.cache.has(ticketAdminRoleId)
+            ticketAdminRole && interaction.member.roles.cache.has(ticketAdminRole.id)
         );
         const isStaff = isAdmin || isTicketAdmin;
 
@@ -51,20 +31,19 @@ module.exports = async (client, interaction) => {
 
         await interaction.reply("Este ticket sera fechado em 5 segundos.");
         await sleep(5000);
-        interaction.channel.delete().catch(console.error)
+        interaction.channel.delete().catch(console.error);
         return;
     }
 
-    // Categorizando chat
     let type = null;
     let category = null;
-    if (interaction.customId === "ticket-general"){
-        type = "general"
+    if (interaction.customId === "ticket-general") {
+        type = "general";
         category = interaction.guild.channels.cache.find(
             (channel) => channel.type === ChannelType.GuildCategory && channel.name.toLowerCase() === "general tickets"
         );
-    }else if (interaction.customId === "ticket-report"){
-        type = "report"
+    } else if (interaction.customId === "ticket-report") {
+        type = "report";
         category = interaction.guild.channels.cache.find(
             (channel) => channel.type === ChannelType.GuildCategory && channel.name.toLowerCase() === "report tickets"
         );
@@ -72,18 +51,14 @@ module.exports = async (client, interaction) => {
 
     if (type === null) return;
 
-    // Formatando nome do chat
     const channelName = `ticket-${type}-${interaction.user.username}`
         .toLowerCase()
         .replace(/[^a-z0-9-]/g, "-")
         .slice(0, 90);
 
-
     const existingChannel = interaction.guild.channels.cache.find(
         (channel) => channel.name === channelName
     );
-
-    // Verificação se já existe algum ticket igual aberto
     if (existingChannel) {
         await interaction.reply({
             content: `Voce ja possui um ticket aberto dessa categoria: ${existingChannel}`,
@@ -92,8 +67,7 @@ module.exports = async (client, interaction) => {
         return;
     }
 
-    const ticketAdminRoleId = getTicketAdminRoleId();
-
+    const ticketAdminRole = await findTicketAdminRole(interaction.guild);
     const ticketChannel = await interaction.guild.channels.create({
         name: channelName,
         type: ChannelType.GuildText,
@@ -111,8 +85,8 @@ module.exports = async (client, interaction) => {
                     PermissionsBitField.Flags.ReadMessageHistory,
                 ],
             },
-            ...(ticketAdminRoleId ? [{
-                id: ticketAdminRoleId,
+            ...(ticketAdminRole ? [{
+                id: ticketAdminRole.id,
                 allow: [
                     PermissionsBitField.Flags.ViewChannel,
                     PermissionsBitField.Flags.SendMessages,
@@ -122,13 +96,11 @@ module.exports = async (client, interaction) => {
         ],
     });
 
-    // Mensagem de controle no chat
     const embed = new EmbedBuilder()
         .setColor(0x333333)
         .setTitle(`**Ticket ${interaction.member.displayName}**`)
         .setDescription("Digite sua dúvida e aguarde")
         .setImage("https://cdn.discordapp.com/attachments/1517889418545987695/1524519917347537016/ezgif.com-video-to-gif-converter.gif?ex=6a57f450&is=6a56a2d0&hm=498a59357c9592b36778305262729c2f9099a702a160db1186591107a20306ce&")
-        //.setFooter({ text: "" })
         .setTimestamp();
 
     const closeButton = new ActionRowBuilder().addComponents(
@@ -148,4 +120,4 @@ module.exports = async (client, interaction) => {
         content: `Seu ticket foi criado: ${ticketChannel}`,
         ephemeral: true,
     });
-}
+};
