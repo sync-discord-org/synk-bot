@@ -13,5 +13,6 @@ const client = new Client({
 //Events
 require("./events/ready.js")(client);
 require("./events/messageCreate.js")(client);
+require("./events/rankingEvents.js")(client);
 
 client.login(process.env.DISCORD_TOKEN).then();
