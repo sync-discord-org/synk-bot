@@ -10,17 +10,8 @@ const client = new Client({
     ],
 });
 
-client.once("ready", () => {
-    console.log(`Bot conectado como ${client.user.tag}`);
-});
-
-// Executa cada mensagem
-client.on("messageCreate", (message) => {
-    if (message.author.bot) return;
-
-    if (message.content.toLowerCase() === "oi") {
-        message.reply("oi");
-    }
-});
+//Events
+require("./events/ready.js")(client);
+require("./events/messageCreate.js")(client);
 
 client.login(process.env.DISCORD_TOKEN).then();
