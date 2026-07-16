@@ -62,5 +62,7 @@ module.exports = (message) => {
 
     //Salvar
     dataSave(data);
-    module.exports.dataLoad = dataLoad;
 };
+
+module.exports.dataLoad = dataLoad;
+module.exports.dataSave = dataSave;

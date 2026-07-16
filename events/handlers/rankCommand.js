@@ -1,5 +1,5 @@
-﻿const { EmbedBuilder } = require("discord.js");
-const { dataLoad } = require("./rankingSystem.js");
+﻿const { buildRankingEmbed } = require("./rankingEmbed.js");
+const { loadTrackedMessages, saveTrackedMessages } = require("./rankingMessageStore.js");
 
 module.exports = (message) => {
     if (message.author.bot) return;
@@ -17,29 +17,25 @@ module.exports = (message) => {
         return message.reply("Não encontrei nenhum canal com esse ID.");
     }
 
-    const dados = dataLoad();
-    const ranking = Object.entries(dados)
-        .sort((a, b) => b[1].xp - a[1].xp)
-        .slice(0, 10);
-
-    if (ranking.length === 0) {
+    const embed = buildRankingEmbed();
+    if (!embed) {
         return message.reply("Ainda não há dados de ranking.");
     }
 
-    const medalhas = ["🥇", "🥈", "🥉"];
-    const descricao = ranking
-        .map(([userId, info], index) => {
-            const posicao = medalhas[index] ?? `**#${index + 1}**`;
-            return `${posicao} <@${userId}> — Level **${info.level}** (${info.xp} XP)`;
-        })
-        .join("\n");
+    (async () => {
+        const tracked = loadTrackedMessages();
+        const oldMessageId = tracked[channelId];
 
-    const embed = new EmbedBuilder()
-        .setTitle("🏆 Ranking do Servidor")
-        .setDescription(descricao)
-        .setColor(0xffd700)
-        .setTimestamp()
-        .setFooter({ text: `Top ${ranking.length} membros mais ativos` });
+        // Apaga a mensagem de ranking antiga desse canal, se existir,
+        // pra não ficar mensagem duplicada sendo "esquecida" sem atualizar
+        if (oldMessageId) {
+            const antiga = await canal.messages.fetch(oldMessageId).catch(() => null);
+            if (antiga) await antiga.delete().catch(() => null);
+        }
 
-    canal.send({ embeds: [embed] });
+        const novaMensagem = await canal.send({ embeds: [embed] });
+
+        tracked[channelId] = novaMensagem.id;
+        saveTrackedMessages(tracked);
+    })();
 };
