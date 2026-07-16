@@ -20,7 +20,7 @@ function buildRankingEmbed() {
     return new EmbedBuilder()
         .setTitle("🏆 Ranking do Servidor")
         .setDescription(descricao)
-        .setColor(0xffd700)
+        .setColor(0x333333)
         .setTimestamp()
         .setFooter({ text: `Top ${ranking.length} membros mais ativos • Atualizado automaticamente a cada 5 min` });
 }
