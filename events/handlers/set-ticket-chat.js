@@ -26,7 +26,7 @@ module.exports = async (client, message) => {
         return;
     }
 
-    const ticketChat = commandContent.replace("set-ticket-chat ", "");
+    const ticketChat = message.content.replace("s!set-ticket-chat ", "");
     const ticketChannel = await client.channels.fetch(ticketChat);
 
     const messages = await ticketChannel.messages.fetch({ limit: 1 });
