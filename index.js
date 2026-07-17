@@ -11,6 +11,7 @@ const client = new Client({
         GatewayIntentBits.Guilds,
         GatewayIntentBits.GuildMessages,
         GatewayIntentBits.MessageContent,
+        GatewayIntentBits.GuildVoiceStates,
     ],
 });
 
@@ -19,10 +20,12 @@ if (!fs.existsSync(path.join(__dirname, "database"))) fs.mkdirSync(path.join(__d
 //Events
 require("./events/ready.js")(client);
 require("./events/messageCreate.js")(client);
-require("./events/rankingEvents.js")(client);
 require("./events/interactionCreate.js")(client);
 
-//Atualização automática das mensagens de ranking a cada 5 minutos
+require("./events/rankingEvents.js")(client);
 require("./events/rankingUpdater.js")(client);
+
+require("./events/voiceRankingEvents.js")(client);
+require("./events/voiceRankingUpdater.js")(client);
 
 client.login(process.env.DISCORD_TOKEN).then();
