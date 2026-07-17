@@ -11,7 +11,13 @@ const { findTicketAdminRole } = require("../../utils/ticket-config");
 
 module.exports = async (client, interaction) => {
     if (interaction.customId === "ticket-close") {
-        const isOwner = interaction.channel.topic === interaction.user.id;
+        const ticketChannel = interaction.channel;
+
+        if (!ticketChannel) {
+            return;
+        }
+
+        const isOwner = ticketChannel.topic === interaction.user.id;
         const isAdmin = interaction.member.permissions.has(
             PermissionsBitField.Flags.Administrator
         );
@@ -31,7 +37,10 @@ module.exports = async (client, interaction) => {
 
         await interaction.reply("Este ticket sera fechado em 5 segundos.");
         await sleep(5000);
-        interaction.channel.delete().catch(console.error);
+
+        if (interaction.guild.channels.cache.has(ticketChannel.id)) {
+            await ticketChannel.delete().catch(console.error);
+        }
         return;
     }
 
@@ -99,7 +108,7 @@ module.exports = async (client, interaction) => {
     const embed = new EmbedBuilder()
         .setColor(0x333333)
         .setTitle(`**Ticket ${interaction.member.displayName}**`)
-        .setDescription("Digite sua dúvida e aguarde")
+        .setDescription("Você está em um canal em contato com a nossa equipe de suporte, em breve o responsável pelo suporte irá lhe atender.\n-# Em casos de denuncias, traga provas legítimas para evitarmos conflitos futuros e difamações dos membros. Agradecemos.")
         .setImage("https://cdn.discordapp.com/attachments/1517889418545987695/1524519917347537016/ezgif.com-video-to-gif-converter.gif?ex=6a57f450&is=6a56a2d0&hm=498a59357c9592b36778305262729c2f9099a702a160db1186591107a20306ce&")
         .setTimestamp();
 

@@ -5,7 +5,6 @@ const DB_PATH = path.join(__dirname, "../../database/voiceRanking.json");
 const VOICE_XP_PER_MINUTE = 10;
 const CHECK_INTERVAL_MS = 60 * 1000;
 
-// Sessões de voz ativas em memória: userId -> { guildId, channelId, joinedAt }
 const activeSessions = new Map();
 
 function dataLoad() {
@@ -31,25 +30,6 @@ function xpToNextLevel(level) {
     return Math.floor(120 * Math.pow(level + 1, 1.9));
 }
 
-async function findAnnounceChannel(guild) {
-    if (!guild) return null;
-    try {
-        if (guild.systemChannel) {
-            const perms = guild.systemChannel.permissionsFor(guild.members.me);
-            if (perms?.has("SendMessages")) return guild.systemChannel;
-        }
-        const canais = await guild.channels.fetch().catch(() => null);
-        if (!canais) return null;
-        return (
-            canais.find(
-                (c) => c?.isTextBased?.() && c.permissionsFor(guild.members.me)?.has("SendMessages")
-            ) ?? null
-        );
-    } catch (e) {
-        return null;
-    }
-}
-
 async function grantVoiceXp(userId, guild, minutos) {
     if (!minutos || minutos <= 0) return;
 
@@ -60,22 +40,11 @@ async function grantVoiceXp(userId, guild, minutos) {
 
     data[userId].xp += Math.floor(minutos * VOICE_XP_PER_MINUTE);
 
-    let subiuDeLevel = false;
     while (data[userId].xp >= xpToNextLevel(data[userId].level)) {
         data[userId].level++;
-        subiuDeLevel = true;
     }
 
     dataSave(data);
-
-    if (subiuDeLevel && guild) {
-        const canal = await findAnnounceChannel(guild);
-        if (canal) {
-            canal
-                .send(`🎉 <@${userId}> subiu para o level ${data[userId].level} no ranking de voz!`)
-                .catch(() => null);
-        }
-    }
 }
 
 function onVoiceStateUpdate(oldState, newState) {
@@ -89,10 +58,8 @@ function onVoiceStateUpdate(oldState, newState) {
     const estavaEm = oldState.channelId;
     const agoraEm = newState.channelId;
 
-    // Só mudou mute/deafen/etc, continua no mesmo canal -> ignora
     if (estavaEm === agoraEm) return;
 
-    // Entrou em um canal de voz válido (não é o AFK)
     if (agoraEm && agoraEm !== afkChannelId) {
         if (!activeSessions.has(userId)) {
             activeSessions.set(userId, { guildId: guild.id, channelId: agoraEm, joinedAt: Date.now() });
@@ -101,7 +68,6 @@ function onVoiceStateUpdate(oldState, newState) {
         }
     }
 
-    // Saiu da call (desconectou ou foi pro canal AFK)
     if ((!agoraEm || agoraEm === afkChannelId) && activeSessions.has(userId)) {
         const sessao = activeSessions.get(userId);
         const minutos = (Date.now() - sessao.joinedAt) / 60000;
@@ -110,8 +76,6 @@ function onVoiceStateUpdate(oldState, newState) {
     }
 }
 
-// Roda a cada CHECK_INTERVAL_MS: credita o XP acumulado de quem está em call
-// e reseta o "checkpoint", pra não perder progresso em caso de restart do bot
 function tickActiveSessions(client) {
     for (const [userId, sessao] of activeSessions.entries()) {
         const minutos = (Date.now() - sessao.joinedAt) / 60000;
@@ -122,7 +86,6 @@ function tickActiveSessions(client) {
     }
 }
 
-// Ao ligar o bot, começa a rastrear quem já está em canais de voz naquele momento
 function initExistingSessions(client) {
     client.guilds.cache.forEach((guild) => {
         guild.channels.cache
@@ -150,4 +113,5 @@ module.exports = {
     dataSave,
     xpToNextLevel,
     CHECK_INTERVAL_MS,
+    VOICE_XP_PER_MINUTE,
 };

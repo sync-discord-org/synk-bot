@@ -1,7 +1,7 @@
 ﻿const { loadTrackedMessages, saveTrackedMessages } = require("./handlers/voiceRankingMessageStore.js");
 const { buildVoiceRankingEmbed } = require("./handlers/voiceRankingEmbed.js");
 
-const UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutos
+const UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 
 module.exports = (client) => {
     setInterval(async () => {

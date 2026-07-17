@@ -26,8 +26,6 @@ module.exports = (message) => {
         const tracked = loadTrackedMessages();
         const oldMessageId = tracked[channelId];
 
-        // Apaga a mensagem de ranking antiga desse canal, se existir,
-        // pra não ficar mensagem duplicada sendo "esquecida" sem atualizar
         if (oldMessageId) {
             const antiga = await canal.messages.fetch(oldMessageId).catch(() => null);
             if (antiga) await antiga.delete().catch(() => null);

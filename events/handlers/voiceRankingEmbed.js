@@ -1,5 +1,13 @@
 ﻿const { EmbedBuilder } = require("discord.js");
-const { dataLoad } = require("./voiceRankingSystem.js");
+const { dataLoad, VOICE_XP_PER_MINUTE } = require("./voiceRankingSystem.js");
+
+function formatTempo(xp) {
+    const totalSegundos = Math.floor((xp / VOICE_XP_PER_MINUTE) * 60);
+    const horas = Math.floor(totalSegundos / 3600);
+    const minutos = Math.floor((totalSegundos % 3600) / 60);
+    const segundos = totalSegundos % 60;
+    return `${horas} h ${minutos} m ${segundos} s`;
+}
 
 function buildVoiceRankingEmbed() {
     const dados = dataLoad();
@@ -9,11 +17,9 @@ function buildVoiceRankingEmbed() {
 
     if (ranking.length === 0) return null;
 
-    const medalhas = ["🥇", "🥈", "🥉"];
     const descricao = ranking
         .map(([userId, info], index) => {
-            const posicao = medalhas[index] ?? `**#${index + 1}**`;
-            return `${posicao} <@${userId}> — Level **${info.level}** (${info.xp} XP)`;
+            return `${index + 1}. <@${userId}>  Tempo: ${formatTempo(info.xp)}`;
         })
         .join("\n");
 

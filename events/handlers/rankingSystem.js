@@ -25,7 +25,7 @@ function dataSave(dados) {
     }
 }
 function xpToNextLevel(level) {
-    return Math.floor(120 * Math.pow(level + 1, 1.9));
+    return Math.floor(450 * Math.pow(level + 1, 1.6));
 }
 function wordCounter(texto) {
     const textoLimpo = texto.trim();
@@ -39,12 +39,10 @@ module.exports = (message) => {
     const userId = message.author.id;
     const now = Date.now();
 
-    //Checar cooldown
     const lastMessage = cooldowns.get(userId) ?? 0;
     if (now - lastMessage < COOLDOWN_MS) return;
     cooldowns.set(userId, now);
 
-    //Carregar dados e pegar o registro do usuário
     const data = dataLoad();
     if (!data[userId]) {
         data[userId] = { xp: 0, level: 0 };
@@ -52,15 +50,13 @@ module.exports = (message) => {
 
     //Dar XP
     const wordNumbers = wordCounter(message.content);
-    data[userId].xp += wordNumbers * 8;
+    data[userId].xp += wordNumbers * 1;
 
-    //Checar se subiu de level
     while (data[userId].xp >= xpToNextLevel(data[userId].level)){
         data[userId].level++;
         message.channel.send(`🎉 ${message.author} subiu para o level ${data[userId].level}!`);
     }
 
-    //Salvar
     dataSave(data);
 };
 

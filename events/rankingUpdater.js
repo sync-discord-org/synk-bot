@@ -1,7 +1,7 @@
 ﻿const { loadTrackedMessages, saveTrackedMessages } = require("./handlers/rankingMessageStore.js");
 const { buildRankingEmbed } = require("./handlers/rankingEmbed.js");
 
-const UPDATE_INTERVAL_MS = 5 * 60 * 1000; // 5 minutos
+const UPDATE_INTERVAL_MS = 5 * 60 * 1000;
 
 module.exports = (client) => {
     setInterval(async () => {
