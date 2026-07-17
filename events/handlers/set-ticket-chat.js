@@ -42,20 +42,17 @@ module.exports = async (client, message) => {
             .setTitle("**SUPORTE**")
             .setDescription("Precisa de ajuda?\nClique no botão abaixo caso necessite de suporte.")
             .setImage("https://cdn.discordapp.com/attachments/1517889418545987695/1524519917347537016/ezgif.com-video-to-gif-converter.gif?ex=6a57f450&is=6a56a2d0&hm=498a59357c9592b36778305262729c2f9099a702a160db1186591107a20306ce&")
-            .setFooter({ text: "Criacao de tickets desnecessarios pode acarretar em penalizacoes." })
-            .setTimestamp();
+            .setFooter({ text: "Criacao de tickets desnecessarios pode acarretar em penalizacoes." });
 
         const buttons = new ActionRowBuilder().addComponents(
             new ButtonBuilder()
                 .setCustomId("ticket-general")
                 .setLabel("Suporte geral")
-                .setEmoji("1️⃣")
-                .setStyle(ButtonStyle.Success),
+                .setStyle(ButtonStyle.Secondary),
             new ButtonBuilder()
                 .setCustomId("ticket-report")
                 .setLabel("Denuncia")
-                .setEmoji("2️⃣")
-                .setStyle(ButtonStyle.Danger)
+                .setStyle(ButtonStyle.Secondary)
         );
 
         await ticketChannel.send({ embeds: [embed], components: [buttons] });
